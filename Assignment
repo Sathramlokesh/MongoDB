@@ -1,0 +1,219 @@
+## Finding Of maximum Marks of a Student
+db.collection.aggregate([
+  {
+    $match: {
+      "scores.score": {
+        $gte: 90
+      },
+      "scores.type": "exam"
+    }
+  },
+  {
+    $project: {
+      name: true,
+      list: {
+        $filter: {
+          input: "$scores",
+          as: "list",
+          cond: {
+            $and: [
+              {
+                $gt: [
+                  "$$list.score",
+                  90
+                ]
+              },
+              {
+                $eq: [
+                  "$$list.type",
+                  "exam"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+])
+## Find students who scored below average in the exam and pass mark is 40%?
+db.collection.aggregate([
+  {
+    $match: {
+      "scores.score": {
+        $gte: 40%
+      },
+      "scores.type": "exam"
+    }
+  },
+  {
+    $project: {
+      name: true,
+      list: {
+        $filter: {
+          input: "$scores",
+          as: "list",
+          cond: {
+            $and: [
+              {
+                $gt: [
+                  "$$list.score",
+                  90
+                ]
+              },
+              {
+                $eq: [
+                  "$$list.type",
+                  "exam"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+])
+
+##  Find students who scored below pass mark and assigned them as fail, and above pass mark as pass in all the categories.
+db.student.aggregate([
+    {
+        "$project": {
+            "maths_result": {
+                "$arrayElemAt": [
+                    {
+                        "$filter": {
+                            "input": "$results",
+                            "as": "res",
+                            "cond": {
+                                "$eq": ["$$res.subject", "maths"]
+                            }
+                        }
+                    },
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "$project": {
+            "maths_fail": { "$lt": ["$maths_result.score", 35 ] }
+        }
+    },
+    {
+        "$group": {
+            "_id": null,
+            "total": { "$sum": 1 },
+            "fail_count": { "$sum": { "$cond": ["$maths_fail", 1, 0 ] } }
+        }
+    },
+    {
+        "$project": {
+            "percentage_maths_fail": {
+                "$multiply": [
+                    { "$divide": ["$fail_count", "$total"] },
+                    100
+                ]
+            }
+        }
+    }
+])
+
+## Find the total and average of the exam, quiz and homework and store them in a separate collection.
+db.students.aggregate(
+    // Initial document match (uses index, if a suitable one is available)
+    { $match: {
+        _id : 1
+    }},
+
+    // Expand the scores array into a stream of documents
+    { $unwind: '$scores' },
+
+    // Filter to 'homework' scores 
+    { $match: {
+        'scores.type': 'homework'
+    }},
+
+    // Sort in descending order
+    { $sort: {
+        'scores.score': -1
+    }}
+)
+
+##   Create a new collection which consists of students who scored below average and above 40% in all the categories.
+db.createCollection( <Student Marks>,
+   {
+     capped: <boolean>,
+     timeseries: {                  // Added in MongoDB 5.0
+        timeField: <string>,        // required for time series collections
+        metaField: <string>,
+        granularity: <string>
+     },
+     expireAfterSeconds: <number>,
+     autoIndexId: <boolean>,
+     size: <number>,
+     max: <number>,
+     storageEngine: <document>,
+     validator: <document>,
+     validationLevel: <string>,
+     validationAction: <string>,
+     indexOptionDefaults: <document>,
+     viewOn: <string>,              // Added in MongoDB 3.4
+     pipeline: <pipeline>,          // Added in MongoDB 3.4
+     collation: <document>,         // Added in MongoDB 3.4
+     writeConcern: <document>
+   }
+)
+
+##   Create a new collection which consists of students who scored below the fail mark in all the categories.
+db.createCollection( <Student Marks>,
+   {
+     capped: <boolean>,
+     timeseries: {                  // Added in MongoDB 5.0
+        timeField: <string>,        // required for time series collections
+        metaField: <string>,
+        granularity: <string>
+     },
+     expireAfterSeconds: <number>,
+     autoIndexId: <boolean>,
+     size: <number>,
+     max: <number>,
+     storageEngine: <document>,
+     validator: <document>,
+     validationLevel: <string>,
+     validationAction: <string>,
+     indexOptionDefaults: <document>,
+     viewOn: <string>,              // Added in MongoDB 3.4
+     pipeline: <pipeline>,          // Added in MongoDB 3.4
+     collation: <document>,         // Added in MongoDB 3.4
+     writeConcern: <document>
+   }
+)
+
+##  Create a new collection which consists of students who scored above pass mark in all the categories.
+
+db.createCollection( <Student Marks>,
+   {
+     capped: <boolean>,
+     timeseries: {                  // Added in MongoDB 5.0
+        timeField: <string>,        // required for time series collections
+        metaField: <string>,
+        granularity: <string>
+     },
+     expireAfterSeconds: <number>,
+     autoIndexId: <boolean>,
+     size: <number>,
+     max: <number>,
+     storageEngine: <document>,
+     validator: <document>,
+     validationLevel: <string>,
+     validationAction: <string>,
+     indexOptionDefaults: <document>,
+     viewOn: <string>,              // Added in MongoDB 3.4
+     pipeline: <pipeline>,          // Added in MongoDB 3.4
+     collation: <document>,         // Added in MongoDB 3.4
+     writeConcern: <document>
+   }
+)
+
+
